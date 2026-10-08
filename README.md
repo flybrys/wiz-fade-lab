@@ -97,6 +97,9 @@ Limitations:
 - Timed off is two commands, not a native one-command fade to zero. Timing includes
   small network delays. A duration shorter than configured global fade-out is
   rejected. HA must remain running for the final off command.
+- Turning on after a fade restores the previous brightness while the integration
+  remains running. This pre-off memory does not survive a restart; supply an
+  explicit brightness on the next turn-on after restarting HA.
 - Reissuing the same physical state from another controller cannot be detected as
   a new command. A fade may also be affected by other automations controlling the bulb.
 - This is a separate polling integration. It does not alter your existing WiZ

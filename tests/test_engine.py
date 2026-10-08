@@ -260,11 +260,14 @@ async def test_unload_cancels_delayed_off():
 async def test_off_failure_is_reported_and_task_cleared():
     engine = make_engine()
     errors = []
+    changes = []
     engine.on_error = errors.append
+    engine.on_change = lambda: changes.append(True)
     await engine.turn_off(0.02)
     engine.bulb.fail = True
     await asyncio.sleep(0.05)
     assert len(errors) == 1
+    assert not changes
     assert engine._pending is None
 
 
@@ -289,6 +292,33 @@ async def test_already_off_does_not_flash_on():
     engine.observe({**engine.state, "state": False})
     await engine.turn_off(10)
     assert engine.bulb.messages[0]["params"] == {"state": False}
+
+
+async def test_turn_on_after_fade_restores_original_brightness():
+    engine = make_engine()
+    await engine.turn_off(0.02)
+    await asyncio.sleep(0.05)
+    await engine.turn_on()
+    assert engine.percent == 20
+    assert engine.state["temp"] == 3500
+
+
+async def test_turn_on_after_off_restores_scaled_state():
+    engine = make_engine()
+    await engine.turn_on(percent=2)
+    await engine.turn_off()
+    await engine.turn_on()
+    assert engine.percent == 2
+    assert engine.state["w"] == 51
+
+
+async def test_explicit_on_brightness_overrides_resume():
+    engine = make_engine()
+    await engine.turn_off(0.02)
+    await asyncio.sleep(0.05)
+    await engine.turn_on(percent=50, kelvin=2700)
+    assert engine.percent == 50
+    assert engine.state["temp"] == 2700
 
 
 @pytest.mark.parametrize("percent", [0, -1, 101, float("nan")])

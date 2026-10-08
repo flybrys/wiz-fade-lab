@@ -116,12 +116,17 @@ class FadeEngine:
         self._lock = asyncio.Lock()
         self._generation = 0
         self._fade_signature: tuple | None = None
+        self._resume: dict | None = None
+        self._resume_signature: tuple | None = None
         self.on_change: Callable[[], None] = lambda: None
         self.on_error: Callable[[Exception], None] = lambda error: None
 
     def observe(self, state: dict) -> None:
         """Clear logical state and pending off if another controller intervenes."""
         self.state = dict(state)
+        if self._resume_signature and wire_signature(state) != self._resume_signature:
+            self._resume = None
+            self._resume_signature = None
         if self.scaled and not self.scaled.matches(state):
             self.scaled = None
         if self._fade_signature and wire_signature(state) != self._fade_signature:
@@ -256,18 +261,49 @@ class FadeEngine:
     async def turn_on(self, **kwargs: Any) -> None:
         self.cancel()
         async with self._lock:
+            if self._resume and not self.state.get("state"):
+                explicit = {
+                    key: value for key, value in kwargs.items() if value is not None
+                }
+                resume = dict(self._resume)
+                if any(key in explicit for key in ("kelvin", "channels", "scene")):
+                    resume = {"percent": resume["percent"]}
+                kwargs = resume | explicit
             plan = self.plan(**kwargs)
             await self._send(plan.params)
+            self._resume = None
+            self._resume_signature = None
             self.scaled = plan.scaled
             await self.refresh()
 
+    def _current_request(self) -> dict:
+        request = {"percent": self.percent}
+        if self.scaled:
+            if self.scaled.kelvin is not None:
+                request["kelvin"] = self.scaled.kelvin
+            else:
+                request["channels"] = self.scaled.channels
+        elif self.state.get("sceneId"):
+            request["scene"] = self.state["sceneId"]
+        elif self.state.get("temp"):
+            request["kelvin"] = self.state["temp"]
+        elif any(self.state.get(key, 0) for key in CHANNELS):
+            request["channels"] = tuple(self.state.get(key, 0) for key in CHANNELS)
+        return request
+
     async def turn_off(self, transition: float | None = None) -> None:
         self.cancel()
+        generation = self._generation
         async with self._lock:
+            resume = (
+                self._current_request() if self.state.get("state") else self._resume
+            )
             if transition is None or transition == 0 or not self.state.get("state"):
                 await self._send({"state": False})
                 self.scaled = None
                 await self.refresh()
+                self._resume = resume
+                self._resume_signature = wire_signature(self.state)
                 return
             if not self.transitions:
                 raise ValueError("Native transitions are disabled")
@@ -284,14 +320,20 @@ class FadeEngine:
             await self._send(plan.params)
             self.scaled = plan.scaled
             await self.refresh()
+            if generation != self._generation:
+                return
             self._fade_signature = wire_signature(self.state)
-            generation = self._generation
             self._pending = asyncio.create_task(
-                self._finish_off((total_ms - self.fade_out_ms) / 1000, generation),
+                self._finish_off(
+                    (total_ms - self.fade_out_ms) / 1000, generation, resume
+                ),
                 name="wiz-fade-delayed-off",
             )
 
-    async def _finish_off(self, delay: float, generation: int) -> None:
+    async def _finish_off(
+        self, delay: float, generation: int, resume: dict | None
+    ) -> None:
+        failed = False
         try:
             await asyncio.sleep(delay)
             async with self._lock:
@@ -309,12 +351,16 @@ class FadeEngine:
                 await self._send({"state": False})
                 self.scaled = None
                 await self.refresh()
+                self._resume = resume
+                self._resume_signature = wire_signature(self.state)
         except asyncio.CancelledError:
             raise
         except Exception as error:
+            failed = True
             self.on_error(error)
         finally:
             if generation == self._generation:
                 self._pending = None
                 self._fade_signature = None
-                self.on_change()
+                if not failed:
+                    self.on_change()
