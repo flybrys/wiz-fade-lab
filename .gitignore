@@ -1,0 +1,11 @@
+.venv/
+.runtime/
+upstream-pywizlight/
+upstream-ha-wiz/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+*.log
+dist/
+.ha-test/

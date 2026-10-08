@@ -1,0 +1,22 @@
+{
+  "title": "WiZ Fade Lab",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a WiZ test bulb",
+        "description": "Experimental integration. Native transitions were verified on ESP24_SHRGB_01 firmware 1.36.1. Low dimming scales LED channels and is approximate; it does not preserve dynamic effects. Keep both options off on untested devices until ready to test.",
+        "data": {"host": "IP address", "native_transitions": "Enable native timed transitions", "experimental_low_dimming": "Enable experimental dimming below the native minimum"}
+      }
+    },
+    "error": {"invalid_ip": "Enter an IPv4 address", "cannot_connect": "Cannot connect to the bulb", "unsupported": "Only single-head dimmable WiZ lights are supported", "unsupported_low_dimming": "Low dimming requires an RGB-capable bulb"},
+    "abort": {"already_configured": "This test bulb is already configured"}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Experimental features",
+        "data": {"native_transitions": "Enable native timed transitions", "experimental_low_dimming": "Enable experimental dimming below the native minimum"}
+      }
+    }
+  }
+}

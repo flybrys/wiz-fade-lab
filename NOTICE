@@ -1,0 +1,10 @@
+WiZ Fade Lab
+
+Home Assistant integration patterns and API usage are based on Home Assistant Core,
+Copyright The Home Assistant Authors, licensed under Apache License 2.0.
+Reviewed upstream WiZ integration revision:
+0b4cbc32e10002791c9eb9fe0020a2493cd4d568 (dev).
+Target Home Assistant release: 2026.9.4.
+
+pywizlight is an external MIT-licensed dependency. It is not vendored or modified.
+The test integration uses pywizlight 0.6.3, matching Home Assistant 2026.9.4.

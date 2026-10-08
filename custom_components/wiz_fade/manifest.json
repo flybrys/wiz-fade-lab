@@ -1,0 +1,12 @@
+{
+  "domain": "wiz_fade",
+  "name": "WiZ Fade Lab",
+  "version": "0.1.0",
+  "codeowners": ["@flybrys"],
+  "config_flow": true,
+  "documentation": "https://github.com/flybrys/wiz-fade-lab",
+  "issue_tracker": "https://github.com/flybrys/wiz-fade-lab/issues",
+  "iot_class": "local_polling",
+  "integration_type": "device",
+  "requirements": ["pywizlight==0.6.3"]
+}
