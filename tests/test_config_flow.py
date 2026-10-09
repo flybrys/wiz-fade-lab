@@ -261,6 +261,22 @@ async def test_racing_existing_entry_is_skipped_without_changing_options(setup_f
     factory.assert_not_called()
 
 
+async def test_unexpected_failure_leaves_no_orphan_flow(setup_flow):
+    hass, manager, bulb, _ = setup_flow
+    hass.entries.extend([entry(), entry(MAC2, "192.0.2.2")])
+    bulb.get_bulbtype.side_effect = [
+        RuntimeError("unexpected"),
+        bulb.get_bulbtype.return_value,
+    ]
+    bulb.getMac.return_value = MAC2
+    result = await choose(manager, "existing")
+    result = await manager.async_configure(result["flow_id"], result["data_schema"]({}))
+    result = await finish_progress(manager, result)
+    assert result["description_placeholders"]["added"] == "1"
+    assert "unexpected_error" in result["description_placeholders"]["failed"]
+    assert not manager.async_progress(include_uninitialized=True)
+
+
 @pytest.mark.parametrize(
     "attribute,error",
     [

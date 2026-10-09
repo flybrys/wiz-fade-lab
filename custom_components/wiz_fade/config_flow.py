@@ -141,14 +141,10 @@ class WizFadeConfigFlow(ConfigFlow, domain=DOMAIN):
                     },
                 )
             except asyncio.CancelledError:
-                for flow in self.hass.config_entries.flow.async_progress_by_handler(
-                    DOMAIN,
-                    include_uninitialized=True,
-                    match_context={"wiz_fade_batch": self.flow_id},
-                ):
-                    self.hass.config_entries.flow.async_abort(flow["flow_id"])
+                self._abort_child_flows()
                 raise
             except Exception:
+                self._abort_child_flows()
                 _LOGGER.exception("Could not add a selected WiZ device")
                 failed.append(f"{device.name}: unexpected_error")
                 continue
@@ -165,6 +161,14 @@ class WizFadeConfigFlow(ConfigFlow, domain=DOMAIN):
             "skipped": str(skipped),
             "failed": "; ".join(failed) or "None",
         }
+
+    def _abort_child_flows(self):
+        for flow in self.hass.config_entries.flow.async_progress_by_handler(
+            DOMAIN,
+            include_uninitialized=True,
+            match_context={"wiz_fade_batch": self.flow_id},
+        ):
+            self.hass.config_entries.flow.async_abort(flow["flow_id"])
 
     async def async_step_complete(self, user_input=None):
         return self.async_abort(
