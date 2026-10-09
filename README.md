@@ -2,7 +2,7 @@
 
 Experimental Home Assistant integration for native WiZ UDP brightness transitions
 and optional dimming below the device's advertised minimum. Target: Home Assistant
-**2026.9.4**. This adds a separate light entity for an explicitly selected bulb;
+**2026.9.4**. This adds separate light entities for explicitly selected bulbs;
 it does not replace the built-in WiZ integration.
 
 ## What works
@@ -34,12 +34,30 @@ automation; do not target a group containing both entities for the same bulb.
    Alternatively, place the repository's `custom_components/wiz_fade` directory
    under your HA configuration's `custom_components` directory and restart.
 2. Open **Settings > Devices & services > Add integration > WiZ Fade Lab**.
-3. Enter one bulb's IP address. Enable native transitions for the test. Enable
-   experimental low dimming only when testing channel scaling on an RGB bulb.
-4. Use the newly created **Fade Lab** light entity. Its actual entity ID is shown
+3. Choose **Import from the existing WiZ integration** to select your configured
+   devices by name, **Discover lights on the local network** for an on-demand
+   scan, or **Enter an IP address** for manual setup.
+4. Import and discovery select all listed devices initially; uncheck any you do
+   not want. Enable native transitions for the test. Enable experimental low
+   dimming only when testing channel scaling on RGB bulbs. These options apply
+   to the selected batch, not to already configured Fade Lab lights.
+5. Wait for the summary. Each device is checked without changing its output.
+   Offline, unsupported, or mismatched devices are reported while the other
+   devices are added. Start another import or scan to retry them.
+6. Use the newly created **Fade Lab** light entity. Its actual entity ID is shown
    in Home Assistant; replace the example ID below with that ID.
 
 Options can be changed using the integration's configuration menu.
+Already added devices are excluded from both lists. Existing WiZ entries and
+entities are never modified; importing creates independent Fade Lab entries.
+Disabled or ignored WiZ entries are not offered for import. Discovery runs only
+when requested and scans Home Assistant's configured IPv4 broadcast networks.
+It generally cannot cross VLANs; importing known WiZ addresses is preferable
+in that case. Bulbs must be reachable from Home Assistant during setup.
+Hosts are copied at setup, not continuously synchronized with WiZ; use DHCP
+reservations to keep addresses stable. Closing a batch dialog cancels remaining
+work without removing entries already added.
+
 The integration is light-only and supports single-head bulbs. Keep using the
 built-in WiZ integration for effects, sockets, fans, occupancy and other features.
 

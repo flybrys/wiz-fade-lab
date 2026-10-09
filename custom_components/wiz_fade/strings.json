@@ -3,19 +3,67 @@
   "config": {
     "step": {
       "user": {
+        "title": "Add WiZ Fade Lab lights",
+        "menu_options": {
+          "existing": "Import from the existing WiZ integration",
+          "discover": "Discover lights on the local network",
+          "manual": "Enter an IP address"
+        }
+      },
+      "manual": {
         "title": "Add a WiZ test bulb",
-        "description": "Experimental integration. Native transitions were verified on ESP24_SHRGB_01 firmware 1.36.1. Low dimming scales LED channels and is approximate; it does not preserve dynamic effects. Keep both options off on untested devices until ready to test.",
-        "data": {"host": "IP address", "native_transitions": "Enable native timed transitions", "experimental_low_dimming": "Enable experimental dimming below the native minimum"}
+        "description": "Experimental features are off by default. Native transitions were verified on ESP24_SHRGB_01 firmware 1.36.1. Low dimming scales LED channels and is approximate; it does not preserve dynamic effects.",
+        "data": {
+          "host": "IP address",
+          "native_transitions": "Enable native timed transitions",
+          "experimental_low_dimming": "Enable experimental dimming below the native minimum"
+        }
+      },
+      "select": {
+        "title": "Select WiZ lights",
+        "description": "All listed devices are selected initially. Uncheck any you do not want to add. The options below apply to this batch only; existing Fade Lab entries are unchanged. Devices will be checked without changing their light output. Offline or unsupported devices are reported at the end.",
+        "data": {
+          "devices": "Lights to add",
+          "native_transitions": "Enable native timed transitions",
+          "experimental_low_dimming": "Enable experimental dimming below the native minimum"
+        }
       }
     },
-    "error": {"invalid_ip": "Enter an IPv4 address", "cannot_connect": "Cannot connect to the bulb", "unsupported": "Only single-head dimmable WiZ lights are supported", "unsupported_low_dimming": "Low dimming requires an RGB-capable bulb"},
-    "abort": {"already_configured": "This test bulb is already configured"}
+    "progress": {
+      "scanning": "Scanning local networks for WiZ devices...",
+      "adding": "Checking and adding the selected lights. Each offline device may take up to 15 seconds. Closing this dialog cancels remaining work; lights already added remain configured."
+    },
+    "error": {
+      "invalid_ip": "Enter an IPv4 address",
+      "cannot_connect": "Cannot connect to the bulb",
+      "unsupported": "Only single-head dimmable WiZ lights are supported",
+      "unsupported_low_dimming": "Low dimming requires an RGB-capable bulb",
+      "wrong_device": "The device at this address does not match the selected bulb",
+      "select_devices": "Select at least one listed light",
+      "already_configured": "This test bulb is already configured"
+    },
+    "abort": {
+      "already_configured": "This test bulb is already configured",
+      "already_in_progress": "This bulb is already being added",
+      "no_existing_devices": "No additional enabled WiZ devices are available to import. They may already be in Fade Lab. Try local discovery or enter an IP address instead.",
+      "no_devices_found": "No additional WiZ devices were discovered. They may already be in Fade Lab. Discovery normally stays within local subnets; try importing from WiZ or entering an IP for devices on another VLAN.",
+      "discovery_failed": "The local network scan failed. Check Home Assistant's network settings, or import from the existing WiZ integration instead.",
+      "cannot_connect": "Cannot connect to the bulb",
+      "invalid_ip": "The selected device does not have a valid IPv4 address",
+      "unsupported": "Only single-head dimmable WiZ lights are supported",
+      "unsupported_low_dimming": "Low dimming requires an RGB-capable bulb",
+      "wrong_device": "The device at this address does not match the selected bulb",
+      "bulk_complete": "Added: {added}. Already configured or being added: {skipped}. Could not add: {failed}. Existing WiZ entries were not changed. To retry failed devices, start another import or discovery."
+    }
   },
   "options": {
     "step": {
       "init": {
         "title": "Experimental features",
-        "data": {"native_transitions": "Enable native timed transitions", "experimental_low_dimming": "Enable experimental dimming below the native minimum"}
+        "data": {
+          "native_transitions": "Enable native timed transitions",
+          "experimental_low_dimming": "Enable experimental dimming below the native minimum"
+        }
       }
     }
   }
